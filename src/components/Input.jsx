@@ -1,8 +1,10 @@
-function Input(props) {
+function Input({ className, placeholder, value, onChange }) {
   return (
     <input
-      className="border border-slate-300 outline-slate-400 px-4 py-2 rounded-md"
-      {...props}
+      placeholder={placeholder}
+      className={className}
+      value={value}
+      onChange={onChange}
     />
   );
 }
