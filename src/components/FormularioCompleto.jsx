@@ -272,7 +272,7 @@ function FormularioCompleto() {
         <Input
           type="text"
           placeholder="Endereço"
-          value={uf}
+          value={endereco}
           onChange={(event) => setEndereco(event.target.value)}
           className="border border-slate-300 outline-slate-400 px-4 py-2 rounded-md"
         />
@@ -306,7 +306,7 @@ function FormularioCompleto() {
         <Input
           type="text"
           placeholder="Estado"
-          value={endereco}
+          value={uf}
           onChange={(event) => setUF(event.target.value)}
           className="border border-slate-300 outline-slate-400 px-4 py-2 rounded-md"
         />
