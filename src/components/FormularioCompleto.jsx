@@ -43,7 +43,7 @@ function FormularioCompleto() {
     setUF("...");
 
     axios
-      .get(`/api/ws/${cep}/json/`)
+      .get(`https://viacep.com.br/api/ws/${cep}/json/`)
       .then((response) => {
         if (response.data.erro) {
           toast.error("Erro ao consultar CEP");
