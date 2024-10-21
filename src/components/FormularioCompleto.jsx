@@ -36,6 +36,11 @@ function FormularioCompleto() {
   // Função para consultar o CEP
   const consultarCEP = () => {
     setLoading(true);
+    if (!cep) {
+      toast.error("Informe um cep");
+      setLoading(false);
+      return;
+    }
     setEndereco("...");
     setBairro("...");
     setCidade("...");
