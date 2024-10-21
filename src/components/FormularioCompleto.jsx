@@ -27,6 +27,7 @@ function FormularioCompleto() {
   const [endereco, setEndereco] = useState("");
   const [numero, setNumero] = useState("");
   const [bairro, setBairro] = useState("");
+  const [complemento, setComplemento] = useState("");
   const [cidade, setCidade] = useState("");
   const [cep, setCEP] = useState("");
   const [uf, setUF] = useState("");
@@ -124,6 +125,7 @@ function FormularioCompleto() {
       email,
       endereco,
       numero,
+      complemento,
       bairro,
       cidade,
       uf,
@@ -157,7 +159,7 @@ function FormularioCompleto() {
       cpfcnpj: formulario.documento || "",
       logradouro: formulario.endereco || "",
       numero: formulario.numero || "",
-      complemento: "",
+      complemento: formulario.complemento || "",
       bairro: formulario.bairro || "",
       cidade: formulario.cidade || "",
       uf: formulario.uf || "",
@@ -283,7 +285,7 @@ function FormularioCompleto() {
         />
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+      <div className="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-3 gap-4 mb-4">
         <Input
           type="text"
           placeholder="Bairro"
@@ -291,7 +293,13 @@ function FormularioCompleto() {
           onChange={(event) => setBairro(event.target.value)}
           className="border border-slate-300 outline-slate-400 px-4 py-2 rounded-md"
         />
-
+        <Input
+          type="text"
+          placeholder="Complemento"
+          value={complemento}
+          onChange={(event) => setComplemento(event.target.value)}
+          className="border border-slate-300 outline-slate-400 px-4 py-2 rounded-md"
+        />
         <Input
           type="text"
           placeholder="Número"
