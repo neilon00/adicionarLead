@@ -30,9 +30,138 @@ function FormularioCompleto() {
   const [complemento, setComplemento] = useState("");
   const [cidade, setCidade] = useState("");
   const [cep, setCEP] = useState("");
+  const [ibge, setIbge] = useState("");
   const [uf, setUF] = useState("");
+  const [localizacao, setLocalizacao] = useState(false);
+
   const [loading, setLoading] = useState(false);
   const [loadingEnvio, setLoadingEnvio] = useState(false);
+
+  // const handleUsarLocalizacao = (event) => {
+  //   const checked = event.target.checked;
+  //   setLocalizacao(checked);
+
+  //   if (checked) {
+  //     if (navigator.geolocation) {
+  //       setLoading(true);
+  //       navigator.geolocation.getCurrentPosition(
+  //         (position) => {
+  //           console.log(position.coords);
+  //           const { latitude, longitude } = position.coords;
+  //           // consultarAPI(latitude, longitude);
+  //           setLoading(false);
+  //         },
+  //         (error) => {
+  //           console.error("Erro ao obter localização:", error);
+  //           if (error.code === 1) {
+  //             toast.error("Permissão negada pelo usuário.");
+  //           } else if (error.code === 2) {
+  //             toast.error("Posição indisponível. Tente novamente.");
+  //           } else if (error.code === 3) {
+  //             toast.error(
+  //               "Tempo limite esgotado ao tentar obter a localização."
+  //             );
+  //           }
+  //           setLoading(false);
+  //         },
+  //         { timeout: 10000 } // Timeout de 10 segundos
+  //       );
+  //     } else {
+  //       console.error("Geolocalização não suportada pelo navegador.");
+  //     }
+  //   }
+  // };
+
+  const handleUsarLocalizacao = (event) => {
+    const checked = event.target.checked;
+    setLocalizacao(checked);
+
+    if (checked) {
+      if (navigator.geolocation) {
+        setLoading(true);
+        navigator.geolocation.getCurrentPosition(
+          (position) => {
+            const { latitude, longitude } = position.coords;
+
+            console.log(position.coords.accuracy);
+            if (position.coords.accuracy > 1000) {
+              toast.warning(
+                "A precisão da localização é baixa. Tente novamente em um local com melhor sinal."
+              );
+            } else {
+              toast.success(
+                `Localização obtida: Latitude ${latitude}, Longitude ${longitude}`
+              );
+
+              consultarNominatim(latitude, longitude);
+            }
+
+            setLoading(false);
+          },
+          (error) => {
+            console.error("Erro ao obter localização:", error);
+            if (error.code === 1) {
+              toast.error("Permissão negada pelo usuário.");
+            } else if (error.code === 2) {
+              toast.error("Posição indisponível. Tente novamente.");
+            } else if (error.code === 3) {
+              toast.error(
+                "Tempo limite esgotado ao tentar obter a localização."
+              );
+            }
+            setLoading(false);
+          },
+          { timeout: 10000 }
+        );
+      } else {
+        console.error("Geolocalização não suportada pelo navegador.");
+      }
+    } else {
+      setEndereco("");
+      setBairro("");
+      setCidade("");
+      setUF("");
+      setNumero("");
+      setCEP("");
+      setComplemento("");
+      setIbge("");
+    }
+  };
+
+  // Função para consultar a API Nominatim
+  const consultarNominatim = (latitude, longitude) => {
+    setEndereco("...");
+    setBairro("...");
+    setCidade("...");
+    setNumero("...");
+    setUF("...");
+    setComplemento("...");
+
+    const url = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&zoom=18&addressdetails=1`;
+
+    fetch(url)
+      .then((response) => response.json())
+      .then((data) => {
+        console.log("Resultado da Nominatim:", data);
+        const endereco = data.display_name;
+        const estadoISO = data.address["ISO3166-2-lvl4"]; // Capturando o 'MG'
+
+        toast.success(`Endereço encontrado: ${endereco}`);
+
+        setEndereco(data.address.road || "");
+        setCidade(data.address.town || "");
+        setBairro(data.address.suburb || "");
+        setEndereco(data.address.road || "");
+        setComplemento(data.address.state_district || "");
+        setUF(estadoISO.split("-")[1] || "");
+        setCEP(data.address.postcode || "");
+        setNumero("");
+      })
+      .catch((error) => {
+        console.error("Erro ao consultar a Nominatim:", error);
+        toast.error("Erro ao obter o endereço.");
+      });
+  };
 
   // Função para consultar o CEP
   const consultarCEP = () => {
@@ -47,10 +176,28 @@ function FormularioCompleto() {
     setCidade("...");
     setNumero("...");
     setUF("...");
+    setComplemento("...");
 
+    // axios
+    // .get(`https://brasilapi.com.br/api/cep/v2/${cep}`)
+    // .then((response) => {
+    //   console.log(response);
+    //   if (response.data.erro) {
+    //     toast.error("Erro ao consultar CEP");
+    //     resetFields();
+    //   } else {
+    //     setEndereco(response.data.street || "");
+    //     setBairro(response.data.neighborhood || "");
+    //     setCidade(response.data.city || "");
+    //     setUF(response.data.state || "");
+    //     setNumero(""); // Resetar o número
+    //     setComplemento(""); // Resetar o complemento
+    //   }
+    // })
     axios
-      .get(`https://viacep.com.br/api/ws/${cep}/json/`)
+      .get("https://opencep.com/v1/" + cleanData(cep))
       .then((response) => {
+        console.log(response);
         if (response.data.erro) {
           toast.error("Erro ao consultar CEP");
           resetFields();
@@ -59,12 +206,16 @@ function FormularioCompleto() {
           setBairro(response.data.bairro || "");
           setCidade(response.data.localidade || "");
           setUF(response.data.uf || "");
-          setNumero(""); // Resetar o número
+          setNumero("");
+          setComplemento(response.data.complemento || "");
+          setIbge(response.data.ibge || "");
         }
       })
       .catch((error) => {
         console.error("Erro ao buscar CEP:", error);
-        toast.error(error.message);
+        toast.error(
+          error.response.data.message || "Erro ao consultar CEP informado"
+        );
         resetFields();
       })
       .finally(() => {
@@ -84,6 +235,15 @@ function FormularioCompleto() {
     setTelefone("");
     setEmail("");
     setDocumento("");
+    setComplemento("");
+    setIbge("");
+
+    setLocalizacao(false);
+
+    const checkbox = document.getElementById("usarLocalizacao");
+    if (checkbox) {
+      checkbox.checked = false;
+    }
   };
 
   const handleSubmit = () => {
@@ -152,7 +312,7 @@ function FormularioCompleto() {
       nome: formulario.nome || "",
       cep: formulario.cep || "",
       telefone: formulario.telefone || "",
-      telefone_2: "",
+      telefone_2: formulario.telefone || "",
       email: formulario.email || "",
       indicacao: "",
       plano: "",
@@ -163,6 +323,7 @@ function FormularioCompleto() {
       bairro: formulario.bairro || "",
       cidade: formulario.cidade || "",
       uf: formulario.uf || "",
+      // ibge: formulario.ibge || "",
     };
 
     // Submissão do formulário usando Axios
@@ -251,6 +412,22 @@ function FormularioCompleto() {
       </div>
 
       {/* Alinhamento do botão com o campo CEP */}
+      <div className="flex items-center mb-1">
+        <input
+          id="usarLocalizacao"
+          type="checkbox"
+          checked={localizacao}
+          className="w-4 h-4 text-blue-600 bg-gray-100 rounded border-gray-300 focus:ring-2"
+          onChange={handleUsarLocalizacao}
+        />
+        <label
+          htmlFor="usarLocalizacao"
+          className="ml-2 text-sm font-medium text-gray-900"
+        >
+          Usar minha localização
+        </label>
+      </div>
+
       <div className="flex space-x-3 mb-4">
         <InputMascara
           type="text"
